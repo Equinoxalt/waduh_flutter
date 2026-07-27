@@ -32,7 +32,11 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('Waduh', style: Theme.of(context).textTheme.headlineMedium),
+              Image.asset(
+                'assets/images/waduh_lettermark.png',
+                height: 64,
+                semanticLabel: 'Waduh',
+              ),
               const SizedBox(height: 32),
               TextField(
                 controller: _emailController,
