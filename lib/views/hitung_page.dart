@@ -31,7 +31,6 @@ class _HitungPageState extends State<HitungPage> {
     final controller = context.watch<HitungController>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Hitung Item')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

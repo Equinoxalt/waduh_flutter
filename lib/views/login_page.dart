@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/auth_controller.dart';
-import 'home_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -59,16 +58,11 @@ class _LoginPageState extends State<LoginPage> {
                 child: FilledButton(
                   onPressed: authController.isLoading
                       ? null
-                      : () async {
-                    final success = await authController.login(
+                      : () {
+                    authController.login(
                       _emailController.text.trim(),
                       _passwordController.text,
                     );
-                    if (success && context.mounted) {
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(builder: (_) => const HomePage()),
-                      );
-                    }
                   },
                   child: authController.isLoading
                       ? const SizedBox(

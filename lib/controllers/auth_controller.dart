@@ -8,9 +8,22 @@ class AuthController extends ChangeNotifier {
   final _storage = const FlutterSecureStorage();
 
   bool isLoading = false;
+  bool isCheckingSession = true;
+  bool isLoggedIn = false;
   String? errorMessage;
 
-  Future<bool> login(String email, String password) async {
+  AuthController() {
+    _checkExistingSession();
+  }
+
+  Future<void> _checkExistingSession() async {
+    final token = await _storage.read(key: 'jwt_token');
+    isLoggedIn = token != null;
+    isCheckingSession = false;
+    notifyListeners();
+  }
+
+  Future<void> login(String email, String password) async {
     isLoading = true;
     errorMessage = null;
     notifyListeners();
@@ -18,16 +31,26 @@ class AuthController extends ChangeNotifier {
     try {
       final token = await _authService.login(email, password);
       await _storage.write(key: 'jwt_token', value: token);
-      isLoading = false;
-      notifyListeners();
-      return true;
+      isLoggedIn = true;
     } on DioException catch (e) {
-      isLoading = false;
-      errorMessage = e.response?.statusCode == 401
-          ? 'Email atau password salah'
-          : 'Gagal terhubung ke server';
-      notifyListeners();
-      return false;
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.connectionError) {
+        errorMessage = 'Server tidak merespons. Cek koneksi & alamat server';
+      } else if (e.response?.statusCode == 401) {
+        errorMessage = 'Email atau password salah';
+      } else {
+        errorMessage = 'Gagal terhubung ke server';
+      }
     }
+
+    isLoading = false;
+    notifyListeners();
+  }
+
+  Future<void> logout() async {
+    await _storage.delete(key: 'jwt_token');
+    isLoggedIn = false;
+    notifyListeners();
   }
 }

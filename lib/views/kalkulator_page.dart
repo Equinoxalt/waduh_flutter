@@ -6,7 +6,6 @@ class KalkulatorPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Kalkulator')),
       body: const Center(
         child: Text('COMING SOON! Wait for next update :3'),
       ),
