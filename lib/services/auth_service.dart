@@ -9,4 +9,12 @@ class AuthService {
 
     return response.data['token'] as String;
   }
+
+  Future<String> register(String email, String password) async {
+    final response = await dio.post('/api/auth/register', data: {
+      'email': email,
+      'password': password,
+    });
+    return response.data['token'] as String;
+  }
 }

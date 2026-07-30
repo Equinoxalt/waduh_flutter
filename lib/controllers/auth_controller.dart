@@ -48,6 +48,40 @@ class AuthController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<bool> register(String email, String password) async {
+    isLoading = true;
+    errorMessage = null;
+    notifyListeners();
+
+    try {
+      final token = await _authService.register(email, password);
+      await _storage.write(key: 'jwt_token', value: token);
+      isLoggedIn = true;
+      isLoading = false;
+      notifyListeners();
+      return true;
+    } on DioException catch (e) {
+      isLoading = false;
+      final serverMessage = e.response?.data is Map ? e.response?.data['message'] : null;
+      if (serverMessage != null) {
+        errorMessage = serverMessage as String;
+      } else if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.connectionError) {
+        errorMessage = 'Server tidak merespons. Cek koneksi & alamat server';
+      } else {
+        errorMessage = 'Gagal membuat akun';
+      }
+      notifyListeners();
+      return false;
+    }
+  }
+
+  void clearError() {
+    errorMessage = null;
+    notifyListeners();
+  }
+
   Future<void> logout() async {
     await _storage.delete(key: 'jwt_token');
     isLoggedIn = false;

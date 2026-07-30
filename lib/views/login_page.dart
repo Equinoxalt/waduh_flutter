@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/auth_controller.dart';
+import 'signup_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -71,6 +72,16 @@ class _LoginPageState extends State<LoginPage> {
                   )
                       : const Text('Login'),
                 ),
+              ),
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: () {
+                  context.read<AuthController>().clearError();
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const SignupPage()),
+                  );
+                },
+                child: const Text('Belum punya akun? Daftar'),
               ),
             ],
           ),
