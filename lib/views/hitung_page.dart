@@ -51,13 +51,16 @@ class _HitungPageState extends State<HitungPage> {
                 padding: const EdgeInsets.only(bottom: 12),
                 child: Text(
                   'Baris ${controller.skippedLines.join(", ")} dilewati (format salah)',
-                  style: const TextStyle(color: Colors.orange),
+                  style: TextStyle(color: Theme.of(context).colorScheme.tertiary),
                 ),
               ),
             if (controller.errorMessage != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 12),
-                child: Text(controller.errorMessage!, style: const TextStyle(color: Colors.red)),
+                child: Text(
+                  controller.errorMessage!,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
               ),
             Row(
               children: [

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'config/app_theme.dart';
 import 'controllers/auth_controller.dart';
 import 'controllers/hitung_controller.dart';
+import 'controllers/theme_controller.dart';
 import 'views/login_page.dart';
 import 'views/home_page.dart';
 
@@ -18,12 +20,19 @@ class WaduhApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthController()),
         ChangeNotifierProvider(create: (_) => HitungController()),
+        ChangeNotifierProvider(create: (_) => ThemeController()),
       ],
-      child: MaterialApp(
-        title: 'Waduh',
-        theme: ThemeData(colorSchemeSeed: Colors.indigo),
-        debugShowCheckedModeBanner: false,
-        home: const AuthGate(),
+      child: Consumer<ThemeController>(
+        builder: (context, themeController, _) {
+          return MaterialApp(
+            title: 'Waduh',
+            theme: buildLightTheme(),
+            darkTheme: buildDarkTheme(),
+            themeMode: themeController.themeMode,
+            debugShowCheckedModeBanner: false,
+            home: const AuthGate(),
+          );
+        },
       ),
     );
   }

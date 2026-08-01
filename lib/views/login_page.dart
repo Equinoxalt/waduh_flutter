@@ -52,7 +52,10 @@ class _LoginPageState extends State<LoginPage> {
               if (authController.errorMessage != null)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 16),
-                  child: Text(authController.errorMessage!, style: const TextStyle(color: Colors.red)),
+                  child: Text(
+                    authController.errorMessage!,
+                    style: TextStyle(color: Theme.of(context).colorScheme.error),
+                  ),
                 ),
               SizedBox(
                 width: double.infinity,

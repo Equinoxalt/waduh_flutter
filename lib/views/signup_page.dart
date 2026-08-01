@@ -56,7 +56,10 @@ class _SignupPageState extends State<SignupPage> {
               if (displayError != null)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 16),
-                  child: Text(displayError, style: const TextStyle(color: Colors.red)),
+                  child: Text(
+                    displayError,
+                    style: TextStyle(color: Theme.of(context).colorScheme.error),
+                  ),
                 ),
               SizedBox(
                 width: double.infinity,
