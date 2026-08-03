@@ -17,4 +17,15 @@ class ItemService {
   Future<void> deleteAll() async {
     await dio.delete('/api/items');
   }
+
+  Future<List<DailyHistoryEntry>> getHistory() async {
+    final response = await dio.get('/api/items/history');
+    final List<dynamic> data = response.data;
+    return data.map((json) => DailyHistoryEntry.fromJson(json)).toList();
+  }
+
+  Future<void> deleteHistoryByDate(String date) async {
+    await dio.delete('/api/items/history/$date');
+  }
+
 }

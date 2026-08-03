@@ -4,6 +4,7 @@ import 'config/app_theme.dart';
 import 'controllers/auth_controller.dart';
 import 'controllers/hitung_controller.dart';
 import 'controllers/theme_controller.dart';
+import 'controllers/riwayat_controller.dart';
 import 'views/login_page.dart';
 import 'views/home_page.dart';
 
@@ -21,6 +22,7 @@ class WaduhApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthController()),
         ChangeNotifierProvider(create: (_) => HitungController()),
         ChangeNotifierProvider(create: (_) => ThemeController()),
+        ChangeNotifierProvider(create: (_) => RiwayatController()),
       ],
       child: Consumer<ThemeController>(
         builder: (context, themeController, _) {

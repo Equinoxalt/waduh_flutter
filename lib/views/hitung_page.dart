@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/hitung_controller.dart';
+import 'package:waduh/views/riwayat_page.dart';
 
 class HitungPage extends StatefulWidget {
   const HitungPage({super.key});
@@ -75,10 +76,39 @@ class _HitungPageState extends State<HitungPage> {
                     child: const Text('Hitung'),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
+                IconButton.outlined(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const RiwayatPage()),
+                    );
+                  },
+                  icon: const Icon(Icons.history),
+                  tooltip: 'Riwayat',
+                ),
+                const SizedBox(width: 8),
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: controller.isLoading ? null : controller.hapusHasil,
+                    onPressed: controller.isLoading
+                        ? null
+                        : () async {
+                      final confirmed = await showDialog<bool>(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Hapus semua data?'),
+                          content: const Text(
+                            'Ini akan menghapus SEMUA data, termasuk seluruh riwayat hari-hari sebelumnya. Tindakan ini tidak bisa dibatalkan.',
+                          ),
+                          actions: [
+                            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
+                            FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Hapus Semua')),
+                          ],
+                        ),
+                      );
+                      if (confirmed == true) {
+                        controller.hapusHasil();
+                      }
+                    },
                     child: const Text('Hapus Hasil'),
                   ),
                 ),
