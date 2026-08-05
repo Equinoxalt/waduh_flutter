@@ -11,6 +11,7 @@ class AuthController extends ChangeNotifier {
   bool isCheckingSession = true;
   bool isLoggedIn = false;
   String? errorMessage;
+  String? currentEmail;
 
   AuthController() {
     _checkExistingSession();
@@ -18,6 +19,7 @@ class AuthController extends ChangeNotifier {
 
   Future<void> _checkExistingSession() async {
     final token = await _storage.read(key: 'jwt_token');
+    currentEmail = await _storage.read(key: 'user_email');
     isLoggedIn = token != null;
     isCheckingSession = false;
     notifyListeners();
@@ -31,6 +33,8 @@ class AuthController extends ChangeNotifier {
     try {
       final token = await _authService.login(email, password);
       await _storage.write(key: 'jwt_token', value: token);
+      await _storage.write(key: 'user_email', value: email);
+      currentEmail = email;
       isLoggedIn = true;
     } on DioException catch (e) {
       if (e.type == DioExceptionType.connectionTimeout ||
@@ -56,6 +60,8 @@ class AuthController extends ChangeNotifier {
     try {
       final token = await _authService.register(email, password);
       await _storage.write(key: 'jwt_token', value: token);
+      await _storage.write(key: 'user_email', value: email);
+      currentEmail = email;
       isLoggedIn = true;
       isLoading = false;
       notifyListeners();
@@ -84,7 +90,9 @@ class AuthController extends ChangeNotifier {
 
   Future<void> logout() async {
     await _storage.delete(key: 'jwt_token');
+    await _storage.delete(key: 'user_email');
     isLoggedIn = false;
+    currentEmail = null;
     notifyListeners();
   }
 }

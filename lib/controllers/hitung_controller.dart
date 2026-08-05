@@ -3,13 +3,29 @@ import 'package:dio/dio.dart';
 import '../models/item_model.dart';
 import '../services/item_service.dart';
 
+enum TotalScope { today, month, all }
+
 class HitungController extends ChangeNotifier {
   final ItemService _itemService = ItemService();
 
   bool isLoading = false;
   String? errorMessage;
   List<ItemTotal> totals = [];
+  List<ItemTotal> sessionTotals = [];
   List<int> skippedLines = [];
+  String? currentSessionId;
+  TotalScope scope = TotalScope.today;
+
+  String get _scopeParam {
+    switch (scope) {
+      case TotalScope.today:
+        return 'today';
+      case TotalScope.month:
+        return 'month';
+      case TotalScope.all:
+        return 'all';
+    }
+  }
 
   List<ItemModel> _parseInput(String rawText) {
     final lines = rawText.split('\n');
@@ -41,7 +57,6 @@ class HitungController extends ChangeNotifier {
     return items;
   }
 
-  // padanan tombol "Hitung"
   Future<void> hitung(String rawText) async {
     final items = _parseInput(rawText);
     errorMessage = null;
@@ -56,8 +71,14 @@ class HitungController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _itemService.addItems(items);
-      totals = await _itemService.getTotals();
+      final returnedSessionId = await _itemService.addItems(items, sessionId: currentSessionId);
+      // hanya update kalau backend benar-benar menyimpan sesuatu — kalau semua baris
+      // baru gagal divalidasi, sesi yang sedang berjalan tidak boleh ikut ter-reset
+      if (returnedSessionId != null) {
+        currentSessionId = returnedSessionId;
+        sessionTotals = await _itemService.getSessionTotals(currentSessionId!);
+      }
+      totals = await _itemService.getTotals(scope: _scopeParam);
     } on DioException {
       errorMessage = 'Gagal terhubung ke server';
     }
@@ -66,31 +87,26 @@ class HitungController extends ChangeNotifier {
     notifyListeners();
   }
 
-  // padanan tombol "Hapus Hasil"
-  Future<void> hapusHasil() async {
-    isLoading = true;
-    errorMessage = null;
+  void hapusHasil() {
+    currentSessionId = null;
+    sessionTotals = [];
     skippedLines = [];
     notifyListeners();
-
-    try {
-      await _itemService.deleteAll();
-      totals = await _itemService.getTotals();
-    } on DioException {
-      errorMessage = 'Gagal terhubung ke server';
-    }
-
-    isLoading = false;
-    notifyListeners();
   }
 
-  // dipanggil sekali waktu halaman pertama kali dibuka
+  Future<void> changeScope(TotalScope newScope) async {
+    if (scope == newScope) return;
+    scope = newScope;
+    notifyListeners();
+    await loadTotals();
+  }
+
   Future<void> loadTotals() async {
     isLoading = true;
     notifyListeners();
 
     try {
-      totals = await _itemService.getTotals();
+      totals = await _itemService.getTotals(scope: _scopeParam);
     } on DioException {
       errorMessage = 'Gagal terhubung ke server';
     }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/hitung_controller.dart';
-import 'package:waduh/views/riwayat_page.dart';
+import 'riwayat_page.dart';
 
 class HitungPage extends StatefulWidget {
   const HitungPage({super.key});
@@ -89,30 +89,64 @@ class _HitungPageState extends State<HitungPage> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: controller.isLoading
+                    onPressed: (controller.isLoading || controller.currentSessionId == null)
                         ? null
-                        : () async {
-                      final confirmed = await showDialog<bool>(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text('Hapus semua data?'),
-                          content: const Text(
-                            'Ini akan menghapus SEMUA data, termasuk seluruh riwayat hari-hari sebelumnya. Tindakan ini tidak bisa dibatalkan.',
-                          ),
-                          actions: [
-                            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
-                            FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Hapus Semua')),
-                          ],
-                        ),
-                      );
-                      if (confirmed == true) {
-                        controller.hapusHasil();
-                      }
-                    },
+                        : controller.hapusHasil,
                     child: const Text('Hapus Hasil'),
                   ),
                 ),
               ],
+            ),
+
+            const SizedBox(height: 16),
+            if (controller.currentSessionId != null)
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.secondaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Total Sesi Ini',
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: Theme.of(context).colorScheme.onSecondaryContainer,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    ...controller.sessionTotals.map(
+                          (item) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 2),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(item.name, style: TextStyle(color: Theme.of(context).colorScheme.onSecondaryContainer)),
+                            Text(
+                              '${item.total}',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.onSecondaryContainer,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            SegmentedButton<TotalScope>(
+              segments: const [
+                ButtonSegment(value: TotalScope.today, label: Text('Hari Ini')),
+                ButtonSegment(value: TotalScope.month, label: Text('Bulan Ini')),
+                ButtonSegment(value: TotalScope.all, label: Text('Semua')),
+              ],
+              selected: {controller.scope},
+              onSelectionChanged: (selected) => controller.changeScope(selected.first),
             ),
             const SizedBox(height: 16),
             if (controller.isLoading) const Center(child: CircularProgressIndicator()),

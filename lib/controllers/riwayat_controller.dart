@@ -40,4 +40,16 @@ class RiwayatController extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<void> deleteAllHistory() async {
+    try {
+      await _itemService.deleteAll();
+      groupedHistory = {};
+      notifyListeners();
+    } on DioException {
+      errorMessage = 'Gagal menghapus data';
+      notifyListeners();
+    }
+  }
+
 }

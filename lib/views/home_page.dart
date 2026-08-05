@@ -22,10 +22,25 @@ class _HomePageState extends State<HomePage> {
     showModalBottomSheet(
       context: context,
       builder: (sheetContext) {
+        final email = context.read<AuthController>().currentEmail;
         return SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              if (email != null)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  child: Row(
+                    children: [
+                      Icon(Icons.account_circle_outlined, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(email, style: Theme.of(context).textTheme.bodyMedium),
+                      ),
+                    ],
+                  ),
+                ),
+              const Divider(height: 1),
               Consumer<ThemeController>(
                 builder: (context, themeController, _) {
                   return SwitchListTile(

@@ -43,13 +43,41 @@ class _RiwayatPageState extends State<RiwayatPage> {
     }
   }
 
+  Future<void> _confirmDeleteAll() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Hapus seluruh riwayat?'),
+        content: const Text(
+          'Semua data dari semua tanggal akan dihapus permanen. Tindakan ini tidak bisa dibatalkan.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Hapus Semua')),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) {
+      context.read<RiwayatController>().deleteAllHistory();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final controller = context.watch<RiwayatController>();
     final dates = controller.groupedHistory.keys.toList();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Riwayat')),
+      appBar: AppBar(
+        title: const Text('Riwayat'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete_forever_outlined),
+            tooltip: 'Hapus semua riwayat',
+            onPressed: dates.isEmpty ? null : _confirmDeleteAll,
+          ),
+        ],
+      ),
       body: controller.isLoading
           ? const Center(child: CircularProgressIndicator())
           : dates.isEmpty
