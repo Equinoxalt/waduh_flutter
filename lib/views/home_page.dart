@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../controllers/auth_controller.dart';
+import '../controllers/hitung_controller.dart';
 import '../controllers/theme_controller.dart';
+import '../utils/formatters.dart';
 import 'hitung_page.dart';
 import 'kalkulator_page.dart';
 
@@ -17,6 +20,26 @@ class _HomePageState extends State<HomePage> {
 
   final _pages = const [HitungPage(), KalkulatorPage()];
   final _titles = const ['Hitung Item', 'Kalkulator'];
+
+  void _shareHitungTotals() {
+    final hitungController = context.read<HitungController>();
+    final data = {for (final item in hitungController.totals) item.name: item.total};
+
+    final String title;
+    switch (hitungController.scope) {
+      case TotalScope.today:
+        title = 'Hari Ini, ${formatIndonesianDate(DateTime.now().toIso8601String().split('T').first)}';
+        break;
+      case TotalScope.month:
+        title = 'Bulan Ini, ${formatIndonesianMonthYear(DateTime.now())}';
+        break;
+      case TotalScope.all:
+        title = 'Semua Data (Keseluruhan)';
+        break;
+    }
+
+    SharePlus.instance.share(ShareParams(text: buildShareText(title: title, data: data)));
+  }
 
   void _showSettingsSheet() {
     showModalBottomSheet(
@@ -72,6 +95,12 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: Text(_titles[_currentIndex]),
         actions: [
+          if (_currentIndex == 0)
+            IconButton(
+              icon: const Icon(Icons.share_outlined),
+              tooltip: 'Bagikan',
+              onPressed: _shareHitungTotals,
+            ),
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             tooltip: 'Pengaturan',

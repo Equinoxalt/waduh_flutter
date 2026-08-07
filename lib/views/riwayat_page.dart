@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../controllers/riwayat_controller.dart';
+import '../models/item_model.dart';
+import '../utils/formatters.dart';
 
 class RiwayatPage extends StatefulWidget {
   const RiwayatPage({super.key});
@@ -18,20 +21,12 @@ class _RiwayatPageState extends State<RiwayatPage> {
     });
   }
 
-  String _formatDate(String isoDate) {
-    final parts = isoDate.split('-');
-    final date = DateTime(int.parse(parts[0]), int.parse(parts[1]), int.parse(parts[2]));
-    const hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', "Jum'at", 'Sabtu', 'Minggu'];
-    const bulanList = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-    return '${hariList[date.weekday - 1]}, ${date.day} ${bulanList[date.month - 1]} ${date.year}';
-  }
-
   Future<void> _confirmDelete(String date) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Hapus riwayat ini?'),
-        content: Text('Semua data pada ${_formatDate(date)} akan dihapus permanen.'),
+        content: Text('Semua data pada ${formatIndonesianDate(date)} akan dihapus permanen.'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
           FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Hapus')),
@@ -60,6 +55,13 @@ class _RiwayatPageState extends State<RiwayatPage> {
     if (confirmed == true && mounted) {
       context.read<RiwayatController>().deleteAllHistory();
     }
+  }
+
+  void _shareDate(String date, List<DailyHistoryEntry> items) {
+    final data = {for (final item in items) item.name: item.total};
+    SharePlus.instance.share(
+      ShareParams(text: buildShareText(title: formatIndonesianDate(date), data: data)),
+    );
   }
 
   @override
@@ -94,9 +96,15 @@ class _RiwayatPageState extends State<RiwayatPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(_formatDate(date), style: Theme.of(context).textTheme.titleMedium),
+                    Expanded(
+                      child: Text(formatIndonesianDate(date), style: Theme.of(context).textTheme.titleMedium),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.share_outlined),
+                      tooltip: 'Bagikan',
+                      onPressed: () => _shareDate(date, items),
+                    ),
                     IconButton(
                       icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error),
                       tooltip: 'Hapus tanggal ini',
