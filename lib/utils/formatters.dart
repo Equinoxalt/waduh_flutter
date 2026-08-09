@@ -35,3 +35,26 @@ String buildShareText({required String title, required Map<String, int> data}) {
 
   return buffer.toString();
 }
+
+String formatIndonesianDateTime(String isoDateTime) {
+  final date = DateTime.parse(isoDateTime).toLocal();
+  const bulanList = [
+    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+  ];
+  final jam = date.hour.toString().padLeft(2, '0');
+  final menit = date.minute.toString().padLeft(2, '0');
+  return '${date.day} ${bulanList[date.month - 1]} ${date.year}, $jam:$menit';
+}
+
+String formatRupiah(int amount) {
+  final str = amount.toString();
+  final buffer = StringBuffer();
+  for (int i = 0; i < str.length; i++) {
+    if (i > 0 && (str.length - i) % 3 == 0) {
+      buffer.write('.');
+    }
+    buffer.write(str[i]);
+  }
+  return 'Rp$buffer';
+}

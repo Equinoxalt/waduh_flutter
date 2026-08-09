@@ -4,6 +4,7 @@ import 'package:share_plus/share_plus.dart';
 import '../controllers/riwayat_controller.dart';
 import '../models/item_model.dart';
 import '../utils/formatters.dart';
+import 'item_detail_page.dart';
 
 class RiwayatPage extends StatefulWidget {
   const RiwayatPage({super.key});
@@ -117,6 +118,17 @@ class _RiwayatPageState extends State<RiwayatPage> {
                   child: ListTile(
                     title: Text(item.name),
                     trailing: Text('${item.total}', style: Theme.of(context).textTheme.titleMedium),
+                    onTap: () {
+                      Navigator.of(context)
+                          .push(MaterialPageRoute(
+                        builder: (_) => ItemDetailPage(itemName: item.name, date: date),
+                      ))
+                          .then((_) {
+                        if (context.mounted) {
+                          context.read<RiwayatController>().loadHistory();
+                        }
+                      });
+                    },
                   ),
                 )),
               ],

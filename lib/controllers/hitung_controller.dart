@@ -16,7 +16,7 @@ class HitungController extends ChangeNotifier {
   String? currentSessionId;
   TotalScope scope = TotalScope.today;
 
-  String get _scopeParam {
+  String get scopeParam {
     switch (scope) {
       case TotalScope.today:
         return 'today';
@@ -72,13 +72,11 @@ class HitungController extends ChangeNotifier {
 
     try {
       final returnedSessionId = await _itemService.addItems(items, sessionId: currentSessionId);
-      // hanya update kalau backend benar-benar menyimpan sesuatu — kalau semua baris
-      // baru gagal divalidasi, sesi yang sedang berjalan tidak boleh ikut ter-reset
       if (returnedSessionId != null) {
         currentSessionId = returnedSessionId;
         sessionTotals = await _itemService.getSessionTotals(currentSessionId!);
       }
-      totals = await _itemService.getTotals(scope: _scopeParam);
+      totals = await _itemService.getTotals(scope: scopeParam);
     } on DioException {
       errorMessage = 'Gagal terhubung ke server';
     }
@@ -106,12 +104,22 @@ class HitungController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      totals = await _itemService.getTotals(scope: _scopeParam);
+      totals = await _itemService.getTotals(scope: scopeParam);
     } on DioException {
       errorMessage = 'Gagal terhubung ke server';
     }
 
     isLoading = false;
+    notifyListeners();
+  }
+
+  // dipanggil setelah balik dari ItemDetailPage, karena edit/hapus di sana
+  // bisa mempengaruhi baik Total Sesi Ini maupun daftar total scope
+  Future<void> refreshAfterEdit() async {
+    if (currentSessionId != null) {
+      sessionTotals = await _itemService.getSessionTotals(currentSessionId!);
+    }
+    totals = await _itemService.getTotals(scope: scopeParam);
     notifyListeners();
   }
 }

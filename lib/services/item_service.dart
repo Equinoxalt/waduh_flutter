@@ -36,4 +36,32 @@ class ItemService {
     await dio.delete('/api/items/history/$date');
   }
 
+  Future<List<ItemRow>> getItemRows({required String name, String? sessionId, String? scope, String? date}) async {
+    final response = await dio.get('/api/items/rows', queryParameters: {
+      'name': name,
+      if (sessionId != null) 'sessionId': sessionId,
+      if (scope != null) 'scope': scope,
+      if (date != null) 'date': date,
+    });
+    final List<dynamic> data = response.data;
+    return data.map((json) => ItemRow.fromJson(json)).toList();
+  }
+
+  Future<void> updateItem(int id, String name, int quantity) async {
+    await dio.put('/api/items/$id', data: {'name': name, 'quantity': quantity});
+  }
+
+  Future<void> deleteItem(int id) async {
+    await dio.delete('/api/items/$id');
+  }
+
+  Future<List<ItemPrice>> getPrices() async {
+    final response = await dio.get('/api/prices');
+    final List<dynamic> data = response.data;
+    return data.map((json) => ItemPrice.fromJson(json)).toList();
+  }
+
+  Future<void> setPrice(String name, int price) async {
+    await dio.put('/api/prices', data: {'name': name, 'price': price});
+  }
 }

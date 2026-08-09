@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/hitung_controller.dart';
+import 'item_detail_page.dart';
 import 'riwayat_page.dart';
 
 class HitungPage extends StatefulWidget {
@@ -25,6 +26,18 @@ class _HitungPageState extends State<HitungPage> {
   void dispose() {
     _inputController.dispose();
     super.dispose();
+  }
+
+  void _openDetail(BuildContext context, String name, {String? sessionId, String? scope}) {
+    Navigator.of(context)
+        .push(MaterialPageRoute(
+      builder: (_) => ItemDetailPage(itemName: name, sessionId: sessionId, scope: scope),
+    ))
+        .then((_) {
+      if (context.mounted) {
+        context.read<HitungController>().refreshAfterEdit();
+      }
+    });
   }
 
   @override
@@ -97,7 +110,6 @@ class _HitungPageState extends State<HitungPage> {
                 ),
               ],
             ),
-
             const SizedBox(height: 16),
             if (controller.currentSessionId != null)
               Container(
@@ -119,20 +131,23 @@ class _HitungPageState extends State<HitungPage> {
                     ),
                     const SizedBox(height: 6),
                     ...controller.sessionTotals.map(
-                          (item) => Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 2),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(item.name, style: TextStyle(color: Theme.of(context).colorScheme.onSecondaryContainer)),
-                            Text(
-                              '${item.total}',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.onSecondaryContainer,
+                          (item) => InkWell(
+                        onTap: () => _openDetail(context, item.name, sessionId: controller.currentSessionId),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(item.name, style: TextStyle(color: Theme.of(context).colorScheme.onSecondaryContainer)),
+                              Text(
+                                '${item.total}',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).colorScheme.onSecondaryContainer,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -161,10 +176,8 @@ class _HitungPageState extends State<HitungPage> {
                     margin: const EdgeInsets.only(bottom: 8),
                     child: ListTile(
                       title: Text(item.name),
-                      trailing: Text(
-                        '${item.total}',
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
+                      trailing: Text('${item.total}', style: Theme.of(context).textTheme.titleLarge),
+                      onTap: () => _openDetail(context, item.name, scope: controller.scopeParam),
                     ),
                   );
                 },
