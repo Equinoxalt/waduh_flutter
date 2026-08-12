@@ -28,19 +28,25 @@ jobs:
           flutter-version: '3.x' # Akan menggunakan versi stabil terbaru
           channel: 'stable'
 
-      # 4. Install Dependencies
+      # 4. Secrets
+      - name: Create env.dart from Secrets
+        run: |
+          mkdir -p lib/config
+          echo "const String baseUrl = '${{ secrets.BASE_URL }}';" > lib/config/env.dart
+
+      # 5. Install Dependencies
       - name: Install Dependencies
         run: flutter pub get
 
-      # 5. Build APK Release
+      # 6. Build APK Release
       - name: Build APK
-        run: flutter build apk --debug
+        run: flutter build apk --release
 
-      # 6. Buat Release di GitHub dan Upload APK
+      # 7. Buat Release di GitHub dan Upload APK
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "build/app/outputs/flutter-apk/app-debug.apk"
+          artifacts: "build/app/outputs/flutter-apk/app-release.apk"
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ github.ref_name }}
           name: "Release ${{ github.ref_name }}"
