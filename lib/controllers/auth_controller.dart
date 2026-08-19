@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../services/auth_service.dart';
+import '../services/dio_client.dart';
 
 class AuthController extends ChangeNotifier {
   final AuthService _authService = AuthService();
@@ -14,6 +15,12 @@ class AuthController extends ChangeNotifier {
   String? currentEmail;
 
   AuthController() {
+    onSessionExpired = () {
+      isLoggedIn = false;
+      currentEmail = null;
+      notifyListeners();
+      _storage.delete(key: 'user_email');
+    };
     _checkExistingSession();
   }
 
@@ -31,8 +38,9 @@ class AuthController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final token = await _authService.login(email, password);
-      await _storage.write(key: 'jwt_token', value: token);
+      final tokens = await _authService.login(email, password);
+      await _storage.write(key: 'jwt_token', value: tokens.accessToken);
+      await _storage.write(key: 'refresh_token', value: tokens.refreshToken);
       await _storage.write(key: 'user_email', value: email);
       currentEmail = email;
       isLoggedIn = true;
@@ -58,8 +66,9 @@ class AuthController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final token = await _authService.register(email, password);
-      await _storage.write(key: 'jwt_token', value: token);
+      final tokens = await _authService.register(email, password);
+      await _storage.write(key: 'jwt_token', value: tokens.accessToken);
+      await _storage.write(key: 'refresh_token', value: tokens.refreshToken);
       await _storage.write(key: 'user_email', value: email);
       currentEmail = email;
       isLoggedIn = true;
@@ -90,6 +99,7 @@ class AuthController extends ChangeNotifier {
 
   Future<void> logout() async {
     await _storage.delete(key: 'jwt_token');
+    await _storage.delete(key: 'refresh_token');
     await _storage.delete(key: 'user_email');
     isLoggedIn = false;
     currentEmail = null;

@@ -101,6 +101,7 @@ class HitungController extends ChangeNotifier {
 
   Future<void> loadTotals() async {
     isLoading = true;
+    errorMessage = null;
     notifyListeners();
 
     try {
@@ -116,10 +117,20 @@ class HitungController extends ChangeNotifier {
   // dipanggil setelah balik dari ItemDetailPage, karena edit/hapus di sana
   // bisa mempengaruhi baik Total Sesi Ini maupun daftar total scope
   Future<void> refreshAfterEdit() async {
-    if (currentSessionId != null) {
-      sessionTotals = await _itemService.getSessionTotals(currentSessionId!);
+    isLoading = true;
+    errorMessage = null;
+    notifyListeners();
+
+    try {
+      if (currentSessionId != null) {
+        sessionTotals = await _itemService.getSessionTotals(currentSessionId!);
+      }
+      totals = await _itemService.getTotals(scope: scopeParam);
+    } on DioException {
+      errorMessage = 'Gagal terhubung ke server';
     }
-    totals = await _itemService.getTotals(scope: scopeParam);
+
+    isLoading = false;
     notifyListeners();
   }
 }

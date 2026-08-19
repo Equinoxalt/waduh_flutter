@@ -57,6 +57,7 @@ class KalkulatorController extends ChangeNotifier {
     if (scope == newScope) return;
     scope = newScope;
     isLoading = true;
+    errorMessage = null;
     notifyListeners();
 
     try {
