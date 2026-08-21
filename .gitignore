@@ -12,6 +12,8 @@ lib/config/env.dart
 .svn/
 .swiftpm/
 migrate_working_dir/
+android/key.properties
+*.jks
 
 # IntelliJ related
 *.iml

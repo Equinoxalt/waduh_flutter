@@ -3,7 +3,7 @@ name: Build & Release APK
 on:
   push:
     tags:
-      - 'v*' # Memicu workflow hanya jika ada tag yang di-push (contoh: v1.0.0)
+      - 'v*'
 
 jobs:
   build:
@@ -14,40 +14,73 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Setup Java (Wajib untuk Android)
+      # 2. Pecah tag jadi nomor versi & nama kode
+      - name: Parse version and codename from tag
+        id: parse
+        run: |
+          TAG="${{ github.ref_name }}"
+          VERSION="${TAG#v}"
+          VERSION_NUMBER="${VERSION%%-*}"
+          CODENAME_RAW="${VERSION#*-}"
+          CODENAME="${CODENAME_RAW//_/ }"
+          echo "version_number=$VERSION_NUMBER" >> "$GITHUB_OUTPUT"
+          echo "version_name=$CODENAME V$VERSION_NUMBER" >> "$GITHUB_OUTPUT"
+          echo "release_title=Waduh! - $CODENAME V$VERSION_NUMBER" >> "$GITHUB_OUTPUT"
+          echo "apk_filename=Waduh-${CODENAME_RAW}-V${VERSION_NUMBER}.apk" >> "$GITHUB_OUTPUT"
+
+      # 3. Setup Java (Wajib untuk Android)
       - name: Setup Java
         uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      # 3. Setup Flutter
+      # 4. Setup Flutter
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.x' # Akan menggunakan versi stabil terbaru
+          flutter-version: '3.x'
           channel: 'stable'
 
-      # 4. Secrets
+      # 5. Secrets - env.dart
       - name: Create env.dart from Secrets
         run: |
           mkdir -p lib/config
           echo "const String baseUrl = '${{ secrets.BASE_URL }}';" > lib/config/env.dart
 
-      # 5. Install Dependencies
+      # 6. Secrets - keystore penandatanganan
+      - name: Decode keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > amabilish-keystore.jks
+
+      - name: Create key.properties
+        run: |
+          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" > android/key.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
+          echo "storeFile=$GITHUB_WORKSPACE/release-key.jks" >> android/key.properties
+
+      # 7. Install Dependencies
       - name: Install Dependencies
         run: flutter pub get
 
-      # 6. Build APK Release
+      # 8. Build APK Release, sekalian suntik nama versi custom
       - name: Build APK
+        env:
+          CUSTOM_VERSION_NAME: ${{ steps.parse.outputs.version_name }}
         run: flutter build apk --release
 
-      # 7. Buat Release di GitHub dan Upload APK
+      # 9. Beri nama file APK sesuai konvensi
+      - name: Rename APK
+        run: |
+          mkdir -p release-output
+          cp build/app/outputs/flutter-apk/app-release.apk "release-output/${{ steps.parse.outputs.apk_filename }}"
+
+      # 10. Buat Release di GitHub dan Upload APK
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "build/app/outputs/flutter-apk/app-release.apk"
+          artifacts: "release-output/${{ steps.parse.outputs.apk_filename }}"
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ github.ref_name }}
-          name: "Release ${{ github.ref_name }}"
-          body: "APK otomatis untuk versi ${{ github.ref_name }}"   
+          name: "${{ steps.parse.outputs.release_title }}"
+          body: "Rilis otomatis untuk ${{ steps.parse.outputs.release_title }}"
